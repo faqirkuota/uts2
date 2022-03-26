@@ -20,17 +20,10 @@ class ReadKotaActivity : AppCompatActivity() {
         btnCreateKec = findViewById(R.id.btnCreateKec)
         val idKota = intent.getStringExtra("id_kota")
         val dataKota : DataKotaModel = databaseHandler.getDataKota(idKota.toString()).get(0)
-//        val namaKota = intent.getStringExtra("nama_kota")
-//        val totalPositif = intent.getStringExtra("total_positif")
-//        val totalSembuh = intent.getStringExtra("total_sembuh")
-//        val totalKematian = intent.getStringExtra("total_kematian")
         btnCreateKec.setOnClickListener{
             var i = Intent(this,CreateActivity::class.java)
             val extras = Bundle()
             extras.putString("id_kota",idKota)
-            extras.putString("total_positif",dataKota.totalPositif.toString())
-            extras.putString("total_sembuh",dataKota.totalSembuh.toString())
-            extras.putString("total_kematian",dataKota.totalMeninggal.toString())
             i.putExtras(extras)
             startActivity(i)
         }
@@ -54,13 +47,8 @@ class ReadKotaActivity : AppCompatActivity() {
         list.setOnItemClickListener(AdapterView.OnItemClickListener { parent, view, position, id ->
             val clickedItem = kecList[position]
             val i = Intent(this,ReadActivity::class.java)
-            val extras = Bundle()
-            extras.putString("id_kota",clickedItem.id.toString())
-            extras.putString("nama_kota",clickedItem.kecamatanName)
-            extras.putString("total_positif",clickedItem.positif.toString())
-            extras.putString("total_sembuh",clickedItem.sembuh.toString())
-            extras.putString("total_kematian",clickedItem.meninggal.toString())
-            i.putExtras(extras)
+            i.putExtra("id_kec",clickedItem.id.toString())
+            i.putExtra("id_kota",clickedItem.idKota.toString())
             startActivity(i)
         })
     }

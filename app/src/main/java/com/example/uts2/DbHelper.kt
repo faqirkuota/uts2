@@ -11,7 +11,7 @@ class DbHelper(context: Context?) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
         private const val DATABASE_NAME = "dataCovidFaisal"
-        private const val DATABASE_VERSION = 3
+        private const val DATABASE_VERSION = 4
 
         private val TABLE_KOTA = "dataKota"
         private val KEY_ID_KOTA = "_id"
@@ -180,6 +180,57 @@ class DbHelper(context: Context?) :
             } while (cursor.moveToNext())
         }
         return empList
+    }
+
+    fun getDataKec(idKec :String): ArrayList<DataKecamatanModel> {
+        val empList: ArrayList<DataKecamatanModel> = ArrayList<DataKecamatanModel>()
+        val idK : Int = idKec.toInt()
+        val selectQuery = "SELECT  * FROM $TABLE_KECAMATAN where $KEY_ID_KECAMATAN = $idK"
+        val db = this.readableDatabase
+        var cursor: Cursor? = null
+        try {
+            cursor = db.rawQuery(selectQuery, null)
+        } catch (e: SQLiteException) {
+            db.execSQL(selectQuery)
+            return ArrayList()
+        }
+        var id: Int
+        var idKota: Int
+        var kecamatanName: String
+        var positif: Int
+        var sembuh: Int
+        var meninggal: Int
+        if (cursor.moveToFirst()) {
+            do {
+                id = cursor.getInt(cursor.getColumnIndex(KEY_ID_KECAMATAN))
+                idKota = cursor.getInt(cursor.getColumnIndex(KEY_ID_FK_KOTA))
+                kecamatanName = cursor.getString(cursor.getColumnIndex(KEY_KECAMATAN_NAME))
+                positif = cursor.getInt(cursor.getColumnIndex(KEY_POSITIF))
+                sembuh = cursor.getInt(cursor.getColumnIndex(KEY_SEMBUH))
+                meninggal = cursor.getInt(cursor.getColumnIndex(KEY_MENINGGAL))
+                val emp = DataKecamatanModel(id = id, idKota=idKota,kecamatanName = kecamatanName, positif = positif, sembuh = sembuh,meninggal = meninggal)
+                empList.add(emp)
+            } while (cursor.moveToNext())
+        }
+        return empList
+    }
+
+    fun deleteKec(emp: Int): Int {
+        val db = this.writableDatabase
+        val success = db.delete(TABLE_KECAMATAN, KEY_ID_KECAMATAN + "=" + emp, null)
+        db.close()
+        return success
+    }
+
+    fun updateKec(idKec:Int,positif: Int, sembuh: Int, meninggal: Int): Int {
+        val db = this.writableDatabase
+        val contentValues = ContentValues()
+        contentValues.put(KEY_POSITIF, positif)
+        contentValues.put(KEY_SEMBUH, sembuh)
+        contentValues.put(KEY_MENINGGAL, meninggal)
+        val success = db.update(TABLE_KECAMATAN, contentValues, KEY_ID_KECAMATAN + "=" + idKec, null)
+        db.close()
+        return success
     }
 }
 

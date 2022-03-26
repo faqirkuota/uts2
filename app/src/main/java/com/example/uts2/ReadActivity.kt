@@ -11,41 +11,56 @@ import android.widget.Toast
 class ReadActivity : AppCompatActivity() {
     lateinit var btnUpdate : Button
     lateinit var btnDelete : Button
-    lateinit var txtNamaKota: TextView
+    lateinit var txtNamaKecamatan: TextView
     lateinit var txtPositif : TextView
     lateinit var txtSembuh : TextView
     lateinit var txtKematian : TextView
+    val databaseHandler: DbHelper = DbHelper(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_read)
         btnUpdate = findViewById(R.id.btnUpdate)
         btnDelete = findViewById(R.id.btnDelete)
-        txtNamaKota = findViewById(R.id.txtNamaKota)
+        txtNamaKecamatan = findViewById(R.id.txtNamaKecamatan)
         txtPositif = findViewById(R.id.txtPositif)
         txtSembuh = findViewById(R.id.txtSembuh)
         txtKematian = findViewById(R.id.txtKematian)
-        val namaKota = intent.getStringExtra("nama_kota")
-        val positif = intent.getStringExtra("jumlah_positif")
-        val sembuh = intent.getStringExtra("jumlah_sembuh")
-        val kematian = intent.getStringExtra("jumlah_kematian")
-        txtNamaKota.setText("Data "+namaKota)
-        txtPositif.setText(positif+" Orang Positif")
-        txtSembuh.setText(sembuh+" Orang Sembuh")
-        txtKematian.setText(kematian+" Orang Meninggal")
+        val idKec = intent.getStringExtra("id_kec")
+        val idKota = intent.getStringExtra("id_kota")
+        val dataKec : DataKecamatanModel = databaseHandler.getDataKec(idKec.toString()).get(0)
+
+        txtNamaKecamatan.setText("Data "+dataKec.kecamatanName)
+        txtPositif.setText(dataKec.positif.toString()+" Orang Positif")
+        txtSembuh.setText(dataKec.sembuh.toString()+" Orang Sembuh")
+        txtKematian.setText(dataKec.meninggal.toString()+" Orang Meninggal")
         btnUpdate.setOnClickListener {
             val i = Intent(this,UpdateActivity::class.java)
-            i.putExtra("nama_kota",namaKota)
-            i.putExtra("jumlah_positif",positif)
-            i.putExtra("jumlah_sembuh",sembuh)
-            i.putExtra("jumlah_kematian",kematian)
+            i.putExtra("id_kec",idKec)
+            i.putExtra("id_kota",idKota)
             startActivity(i)
         }
         btnDelete.setOnClickListener{
-            Toast.makeText(getApplicationContext(),"Data Telah Didelete", Toast.LENGTH_SHORT).show();
-            val i = Intent(this,MainActivity::class.java)
-            startActivity(i)
+            val status =databaseHandler.deleteKec(Integer.parseInt(idKec))
+            val status2 = updateCounter(Integer.parseInt(idKota), dataKec.positif
+                , dataKec.sembuh, dataKec.meninggal)
+            if (status > -1&& status2 > -1) {
+                Toast.makeText(getApplicationContext(),"Data Telah Didelete", Toast.LENGTH_SHORT).show();
+                val i = Intent(this,ReadKotaActivity::class.java)
+                startActivity(i)
+            }else{
+                Toast.makeText(getApplicationContext(),"Data Gagal Didelete", Toast.LENGTH_SHORT).show();
+            }
         }
+    }
 
-
+    private fun updateCounter(idK: Int, positif: Int, sembuh: Int, meninggal: Int): Int {
+        val dataKota : DataKotaModel = databaseHandler.getDataKota(idK.toString()).get(0)
+        val updateTotalPositif = dataKota.totalPositif - positif
+        val updateTotalSembuh = dataKota.totalSembuh - sembuh
+        val updateTotalMeninggal = dataKota.totalMeninggal - meninggal
+        val databaseHandler: DbHelper = DbHelper(this)
+        val status = databaseHandler.updateCounter(idK, updateTotalPositif, updateTotalSembuh, updateTotalMeninggal)
+        return status
     }
 }

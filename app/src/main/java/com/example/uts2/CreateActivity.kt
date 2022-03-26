@@ -14,6 +14,7 @@ class CreateActivity : AppCompatActivity() {
     lateinit var inpPositif: TextView
     lateinit var inpSembuh: TextView
     lateinit var inpKematian: TextView
+    val databaseHandler: DbHelper = DbHelper(this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_create)
@@ -30,7 +31,7 @@ class CreateActivity : AppCompatActivity() {
 
     private fun addRecord() {
         val idKec = inpIdKec.text.toString()
-        val idK = intent.getIntExtra("name_id", 999)
+        val idK = intent.getStringExtra("id_kota")
         val kec = inpKec.text.toString()
         val positif = inpPositif.text.toString()
         val sembuh = inpSembuh.text.toString()
@@ -40,11 +41,11 @@ class CreateActivity : AppCompatActivity() {
             val status =
                 databaseHandler.addKecamatan(
                     DataKecamatanModel(
-                        idKec.toInt(), idK,
+                        idKec.toInt(), Integer.parseInt(idK),
                         kec, positif.toInt(), sembuh.toInt(), meninggal.toInt()
                     )
                 )
-            val status2 = updateCounter(idK, positif.toInt(), sembuh.toInt(), meninggal.toInt())
+            val status2 = updateCounter(Integer.parseInt(idK), positif.toInt(), sembuh.toInt(), meninggal.toInt())
             if (status > -1 && status2 > -1) {
                 Toast.makeText(getApplicationContext(), "Data Tersimpan", Toast.LENGTH_LONG).show()
                 val i = Intent(this, ReadKotaActivity::class.java)
@@ -63,12 +64,10 @@ class CreateActivity : AppCompatActivity() {
     }
 
     private fun updateCounter(idK: Int, positif: Int, sembuh: Int, meninggal: Int): Int {
-        val totalPositif = intent.getIntExtra("total_positif", 0)
-        val totalSembuh = intent.getIntExtra("total_sembuh", 0)
-        val totalKematian = intent.getIntExtra("total_kematian", 0)
-        val updateTotalPositif = totalPositif + positif
-        val updateTotalSembuh = totalPositif + sembuh
-        val updateTotalMeninggal = totalPositif + meninggal
+        val dataKota : DataKotaModel = databaseHandler.getDataKota(idK.toString()).get(0)
+        val updateTotalPositif = dataKota.totalPositif + positif
+        val updateTotalSembuh = dataKota.totalSembuh + sembuh
+        val updateTotalMeninggal = dataKota.totalMeninggal + meninggal
         val databaseHandler: DbHelper = DbHelper(this)
         val status = databaseHandler.updateCounter(idK, updateTotalPositif, updateTotalSembuh, updateTotalMeninggal)
         return status
